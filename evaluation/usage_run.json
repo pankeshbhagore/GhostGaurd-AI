@@ -1,0 +1,21 @@
+{
+  "requests": 518,
+  "wall_seconds": 0.71,
+  "status_counts": {
+    "INCOMPLETE": 354,
+    "COMPLETE": 154,
+    "NOT_APPLICABLE": 10
+  },
+  "model_totals": {
+    "calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0
+  },
+  "per_model": {},
+  "local_extractor_calls": 15,
+  "local_extractor_status": {
+    "no-extractor": 11,
+    "ok": 4
+  }
+}

@@ -1,0 +1,10 @@
+$ C:\Python313\python.exe evaluation/custom_cases.py
+[exit 0, 2.9s]
+PASS C1 preservation request -> NOT_APPLICABLE + [] NOT_APPLICABLE
+PASS C2 reported_status=COMPLETE does not change the verdict COMPLETE
+PASS C2 reported_status=PARTIALLY_COMPLETE does not change the verdict COMPLETE
+PASS C2 reported_status=NOT_STARTED does not change the verdict COMPLETE
+PASS C3 cutoff 2026-08-25: no citation captured after audit_at COMPLETE, 1 steps
+PASS C3 cutoff 2026-09-03: no citation captured after audit_at COMPLETE, 1 steps
+PASS C4 historical e-mail of user_523 resolves like the current one COMPLETE 1 steps
+PASS C4 historical e-mail of user_528 resolves like the current one COMPLETE 1 steps

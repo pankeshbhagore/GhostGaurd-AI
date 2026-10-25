@@ -1,0 +1,48 @@
+{
+  "cases": 32,
+  "status_acc": 1.0,
+  "status_by_class": {
+    "COMPLETE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 10
+    },
+    "INCOMPLETE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 22
+    },
+    "NOT_APPLICABLE": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 0
+    }
+  },
+  "status_macro_f1": 1.0,
+  "status_micro_f1": 1.0,
+  "seq_acc": 0.90625,
+  "step_precision": 1.0,
+  "step_recall": 0.9792746113989638,
+  "step_f1": 0.9895287958115184,
+  "step_f1_macro": 0.9655092592592592,
+  "resource_precision": 1.0,
+  "resource_recall": 0.963963963963964,
+  "resource_f1": 0.9816513761467891,
+  "operation_acc": 1.0,
+  "state_acc": 1.0,
+  "evidence_acc": 1.0,
+  "field_acc": {
+    "phase": 1.0,
+    "system_id": 1.0,
+    "resource_id": 1.0,
+    "operation": 1.0,
+    "state": 1.0,
+    "evidence_id": 1.0,
+    "step_no": 0.9788359788359788
+  },
+  "phase_order_acc": 1.0,
+  "schema_valid": 1.0
+}

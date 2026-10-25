@@ -1,0 +1,14 @@
+$ C:\Python313\python.exe validate.py
+[exit 0, 0.3s]
+STRUCTURAL: OK
+SEMANTIC:   OK; 22 warnings; stats {'cases': 518, 'steps': 3252, 'citations': 1248, 'weak_citations': 12, 'absence_by_omission_citations': 67}
+  warn case_33 1 evidence_18 does not literally mention export_1842 (REPORT_REMAINING_RECORD)
+  warn case_33 no account verification
+  warn case_34 1 evidence_04 does not literally mention account_5762 (REPORT_REMAINING_RECORD)
+  warn case_35 1 evidence_09 does not literally mention search_428 (REPORT_REMAINING_RECORD)
+  warn case_35 no account verification
+  warn case_39 1 evidence_14 does not literally mention data_flow_1121 (REPORT_ACTIVE_DATA_FLOW)
+  warn case_39 no account verification
+  warn case_45 1 evidence_37 does not literally mention audit_record_003 (VERIFY_RECORD_PRESENT)
+  warn case_45 no account verification
+  warn case_46 2 evidence_42 does not literally mention tombstone_17 (VERIFY_RECORD_REDACTED)

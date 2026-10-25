@@ -1,0 +1,2 @@
+# Pure standard library (Python >= 3.10). Optional system tools for PDF/PNG evidence:
+#   pdftotext (poppler-utils) and tesseract-ocr. Without them the PDF/PNG-only cases lose their artifact observations.

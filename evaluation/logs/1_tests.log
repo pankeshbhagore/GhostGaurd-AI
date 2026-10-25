@@ -1,0 +1,47 @@
+$ C:\Python313\python.exe -W ignore -m unittest discover -s tests -v
+[exit 0, 4.2s]
+test_cases (test_intent.Intent.test_cases) ... ok
+test_deterministic (test_regression.Regression.test_deterministic) ... ok
+test_not_applicable_empty (test_regression.Regression.test_not_applicable_empty) ... ok
+test_row_count (test_regression.Regression.test_row_count) ... ok
+test_samples (test_regression.Regression.test_samples) ... ok
+test_valid_format (test_regression.Regression.test_valid_format) ... ok
+test_deterministic (test_synthetic.Metamorphic.test_deterministic) ... ok
+test_evidence_file_order_is_irrelevant (test_synthetic.Metamorphic.test_evidence_file_order_is_irrelevant) ... ok
+test_future_observation_does_not_change_history (test_synthetic.Metamorphic.test_future_observation_does_not_change_history) ... ok
+test_reported_status_is_not_evidence (test_synthetic.Metamorphic.test_reported_status_is_not_evidence) ... ok
+test_unrelated_user_records_are_ignored (test_synthetic.Metamorphic.test_unrelated_user_records_are_ignored) ... ok
+test_missing_retained_record_is_not_verified_as_present (test_synthetic.PlannerGuards.test_missing_retained_record_is_not_verified_as_present) ... ok
+test_removed_backup_is_not_a_restore_risk (test_synthetic.PlannerGuards.test_removed_backup_is_not_a_restore_risk) ... ok
+test_01_historical_email (test_synthetic.Scenarios.test_01_historical_email) ... ok
+test_02_recreated_by_sync (test_synthetic.Scenarios.test_02_recreated_by_sync) ... ok
+test_03_required_redaction (test_synthetic.Scenarios.test_03_required_redaction) ... ok
+test_04_backup_restore_risk (test_synthetic.Scenarios.test_04_backup_restore_risk) ... ok
+test_05_legal_hold_retained (test_synthetic.Scenarios.test_05_legal_hold_retained) ... ok
+test_06_stale_evidence_after_audit (test_synthetic.Scenarios.test_06_stale_evidence_after_audit) ... ok
+test_07_conflicting_copies_worst_wins (test_synthetic.Scenarios.test_07_conflicting_copies_worst_wins) ... ok
+test_08_already_anonymized_analytics (test_synthetic.Scenarios.test_08_already_anonymized_analytics) ... ok
+test_09_ambiguous_identity_same_name (test_synthetic.Scenarios.test_09_ambiguous_identity_same_name) ... ok
+test_10_not_a_deletion_request (test_synthetic.Scenarios.test_10_not_a_deletion_request) ... ok
+test_bad_json (test_synthetic.ValidatorMutations.test_bad_json) ... ok
+test_bad_state_pair (test_synthetic.ValidatorMutations.test_bad_state_pair) ... ok
+test_baseline_clean (test_synthetic.ValidatorMutations.test_baseline_clean) ... ok
+test_complete_with_finding (test_synthetic.ValidatorMutations.test_complete_with_finding) ... ok
+test_duplicate_row (test_synthetic.ValidatorMutations.test_duplicate_row) ... ok
+test_extra_field (test_synthetic.ValidatorMutations.test_extra_field) ... ok
+test_future_citation (test_synthetic.ValidatorMutations.test_future_citation) ... ok
+test_missing_row (test_synthetic.ValidatorMutations.test_missing_row) ... ok
+test_missing_verification (test_synthetic.ValidatorMutations.test_missing_verification) ... ok
+test_na_with_steps (test_synthetic.ValidatorMutations.test_na_with_steps) ... ok
+test_non_array (test_synthetic.ValidatorMutations.test_non_array) ... ok
+test_nonempty_evidence_on_remediation (test_synthetic.ValidatorMutations.test_nonempty_evidence_on_remediation) ... ok
+test_step_numbers (test_synthetic.ValidatorMutations.test_step_numbers) ... ok
+test_unknown_citation (test_synthetic.ValidatorMutations.test_unknown_citation) ... ok
+test_unsorted (test_synthetic.ValidatorMutations.test_unsorted) ... ok
+test_wrong_order (test_synthetic.ValidatorMutations.test_wrong_order) ... ok
+test_wrong_policy_treatment (test_synthetic.ValidatorMutations.test_wrong_policy_treatment) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 3.884s
+
+OK
