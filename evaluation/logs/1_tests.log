@@ -1,6 +1,10 @@
 $ C:\Python313\python.exe -W ignore -m unittest discover -s tests -v
-[exit 0, 4.2s]
+[exit 0, 12.3s]
 test_cases (test_intent.Intent.test_cases) ... ok
+test_deterministic_fallback_when_disabled (test_openai.TestOpenAIIntegration.test_deterministic_fallback_when_disabled) ... ok
+test_live_ai_client_available (test_openai.TestOpenAIIntegration.test_live_ai_client_available) ... ok
+test_meter_tracking (test_openai.TestOpenAIIntegration.test_meter_tracking) ... ok
+test_pricing_calculation (test_openai.TestOpenAIIntegration.test_pricing_calculation) ... ok
 test_deterministic (test_regression.Regression.test_deterministic) ... ok
 test_not_applicable_empty (test_regression.Regression.test_not_applicable_empty) ... ok
 test_row_count (test_regression.Regression.test_row_count) ... ok
@@ -42,6 +46,6 @@ test_wrong_order (test_synthetic.ValidatorMutations.test_wrong_order) ... ok
 test_wrong_policy_treatment (test_synthetic.ValidatorMutations.test_wrong_policy_treatment) ... ok
 
 ----------------------------------------------------------------------
-Ran 40 tests in 3.884s
+Ran 44 tests in 11.816s
 
 OK

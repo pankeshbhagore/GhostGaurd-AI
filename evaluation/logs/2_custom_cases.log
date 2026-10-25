@@ -1,5 +1,5 @@
 $ C:\Python313\python.exe evaluation/custom_cases.py
-[exit 0, 2.9s]
+[exit 0, 19.0s]
 PASS C1 preservation request -> NOT_APPLICABLE + [] NOT_APPLICABLE
 PASS C2 reported_status=COMPLETE does not change the verdict COMPLETE
 PASS C2 reported_status=PARTIALLY_COMPLETE does not change the verdict COMPLETE

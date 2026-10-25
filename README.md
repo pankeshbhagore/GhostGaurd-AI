@@ -78,8 +78,9 @@ GhostGuard AI/
 ```
 
 ## 8. System requirements
-- **Python:** 3.10+ (tested on Python 3.13), standard library only.
+- **Python:** 3.10+ (tested on Python 3.13).
 - **RAM & CPU:** ~200 MB RAM, a few seconds of CPU time.
+- **OpenAI Integration:** Official `openai` SDK with `gpt-4o` (or any compatible model configured via `.env`).
 - **Optional Tools:** `pdftotext` (poppler) and `tesseract-ocr` for PDF/PNG optical character recognition.
 
 ## 9. Installation & Local Setup
@@ -90,12 +91,8 @@ git clone https://github.com/pankeshbhagore/GhostGaurd-AI.git
 cd GhostGaurd-AI
 ```
 
-### Step 2: (Optional) Create and Activate a Virtual Environment
+### Step 2: (Recommended) Create and Activate a Virtual Environment
 ```bash
-# On Linux / macOS:
-python3 -m venv .venv
-source .venv/bin/activate
-
 # On Windows (PowerShell):
 python -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -103,58 +100,108 @@ python -m venv .venv
 # On Windows (Command Prompt):
 python -m venv .venv
 .venv\Scripts\activate.bat
+
+# On Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### Step 3: Install Dependencies
-The core pipeline runs purely on Python standard library modules!
 ```bash
 pip install -r requirements.txt
 ```
+
+### Step 4: Configure Local `.env` File
+Copy the provided `.env.example` to `.env` and set your credentials:
+```bash
+# On Windows (PowerShell):
+Copy-Item .env.example .env
+
+# On Linux / macOS:
+cp .env.example .env
+```
+Edit `.env` with your OpenAI credentials:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_ORG_ID=your_optional_org_id_here
+OPENAI_MODEL=gpt-4o
+```
+*(Note: `.env` is strictly excluded in `.gitignore` and is never committed to GitHub or exposed in logs).*
 
 *(Optional OCR Tools)*:
 - **Windows:** `choco install poppler tesseract` (or install Tesseract from GitHub and add to PATH)
 - **Linux (Ubuntu/Debian):** `sudo apt update && sudo apt install poppler-utils tesseract-ocr`
 - **macOS:** `brew install poppler tesseract`
 
-## 10. Running Locally
+## 10. OpenAI Integration & Feature Architecture
+
+| Feature | Powered By | Requires API? | Behavior & Fallback |
+|---|---|---|---|
+| **Evidence Graph & State Engine** | Deterministic Engine | No (100% Offline) | Scans databases, logs, JSON exports, and OCR text to determine state at `audit_at`. |
+| **Status Verdict & Step Generation** | Deterministic Engine | No (100% Offline) | Evaluates `deletion_rules.csv` to generate verified findings, remediation, and verification steps for `output.csv`. |
+| **Output Validation** | Independent Validator (`validate.py`) | No (100% Offline) | Validates structure, citations, operation ordering, and semantic consistency against raw evidence. |
+| **Ambiguous Intent Disambiguation** | OpenAI (`gpt-4o`) + Regex | Optional | Unambiguous requests resolve deterministically without consuming API tokens; mixed/ambiguous signals are arbitrated via OpenAI structured JSON with automatic regex fallback. |
+| **Investigation & Remediation Narratives** | OpenAI (`gpt-4o`) | Optional | Generates root-cause analyses, executive summaries, and remediation narratives strictly grounded in verified steps (never hallucinates citations). Fallbacks to structured templates offline. |
+| **Token & Cost Accounting** | `deletion_audit.usage.METER` | Automatic | Records real model name, calls, input/output tokens, and estimated USD cost to `evaluation/usage_run.json` and `evaluation/usage_report.md`. If no API calls occur, reports zero honestly. |
+
+## 11. Running Locally on Windows
 
 ### 1. Run the Full Audit Pipeline
-Audits `dataset/deletion_requests.csv` and outputs predictions to `output.csv`:
+Audits `dataset/deletion_requests.csv` and generates `output.csv` (518 rows):
 ```bash
 python main.py
 ```
 
-### 2. Run Audit with Sample Evaluation Scoring
-Scores predictions against the public benchmark gold labels:
+### 2. Run Audit with Public Sample Benchmark Scoring
+Evaluates predictions against public sample gold labels:
 ```bash
 python main.py --evaluate
 ```
 
-### 3. Run Independent Output Validation
-Performs structural and semantic validation against rules and evidence:
+### 3. Case Drill-Down & Investigation Narrative (OpenAI)
+Generates an AI-powered root-cause investigation and remediation explanation for a specific case:
+```bash
+python main.py --case case_100
+```
+
+### 4. Generate Comprehensive Audit Narratives
+Generates `evaluation/audit_narratives.md` explaining key `INCOMPLETE`, `COMPLETE`, and `NOT_APPLICABLE` cases:
+```bash
+python main.py --summarize
+```
+
+### 5. Force 100% Offline Deterministic Mode
+Bypasses all API calls completely:
+```bash
+python main.py --no-llm
+```
+
+### 6. Validate Output Integrity
+Performs independent two-layer (structural and semantic) validation:
 ```bash
 python validate.py
 ```
 
-### 4. Run Diagnostics
-Generates evidence coverage and linkage confidence reports:
+### 7. Run Diagnostics
+Inspects evidence coverage and linkage confidence:
 ```bash
 python diagnostics.py
 ```
 
-### 5. Run the Test Suite (40 Unit & Synthetic Tests)
+### 8. Run the Complete Test Suite (44 Tests)
+Runs unit, metamorphic, synthetic, validator mutation, intent, and OpenAI integration tests:
 ```bash
 python -W ignore -m unittest discover -s tests -v
 ```
 
-### 6. Run Custom Evaluation Cases & Holdout Tests
+### 9. Run Custom Cases & Holdout Linkage
 ```bash
 python evaluation/custom_cases.py
 python evaluation/linkage_holdout.py
 ```
 
-### 7. Run Everything End-to-End (Single Verification Command)
-Runs tests -> sample evaluation -> full run (twice) -> byte-for-byte SHA256 comparison -> validation -> diagnostics -> holdout test:
+### 10. All-in-One Verification & Reproducibility Runner
+Executes tests -> sample evaluation -> full run (twice) -> SHA256 byte comparison -> validation -> diagnostics -> holdout test:
 ```bash
 python run_all.py
 ```

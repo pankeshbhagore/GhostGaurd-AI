@@ -1,5 +1,5 @@
 $ C:\Python313\python.exe evaluation/linkage_holdout.py
-[exit 0, 0.8s]
+[exit 0, 5.8s]
 candidates | correct / total | accuracy
          1 |  127 / 129      | 0.984
        2-3 |   75 / 123      | 0.610

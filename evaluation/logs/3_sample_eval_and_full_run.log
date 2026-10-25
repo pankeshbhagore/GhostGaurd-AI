@@ -1,6 +1,6 @@
 $ C:\Python313\python.exe main.py --evaluate --output output.csv
-[exit 0, 1.5s]
-wrote output.csv: 518 rows {'INCOMPLETE': 354, 'COMPLETE': 154, 'NOT_APPLICABLE': 10} in 0.7s
+[exit 0, 7.7s]
+wrote output.csv: 518 rows {'INCOMPLETE': 354, 'COMPLETE': 154, 'NOT_APPLICABLE': 10} in 5.6s
 {
   "cases": 32,
   "status_acc": 1.0,

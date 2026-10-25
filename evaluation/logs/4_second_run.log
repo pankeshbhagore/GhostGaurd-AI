@@ -1,3 +1,3 @@
 $ C:\Python313\python.exe main.py --no-usage --output C:\Users\panke\GhostGuard AI\evaluation\logs\output_run2.csv
-[exit 0, 0.8s]
-wrote C:\Users\panke\GhostGuard AI\evaluation\logs\output_run2.csv: 518 rows {'INCOMPLETE': 354, 'COMPLETE': 154, 'NOT_APPLICABLE': 10} in 0.5s
+[exit 0, 6.7s]
+wrote C:\Users\panke\GhostGuard AI\evaluation\logs\output_run2.csv: 518 rows {'INCOMPLETE': 354, 'COMPLETE': 154, 'NOT_APPLICABLE': 10} in 6.2s

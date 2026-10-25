@@ -1,2 +1,8 @@
-# Pure standard library (Python >= 3.10). Optional system tools for PDF/PNG evidence:
-#   pdftotext (poppler-utils) and tesseract-ocr. Without them the PDF/PNG-only cases lose their artifact observations.
+# GhostGuard AI Core Requirements
+# The deterministic pipeline runs on standard library (Python >= 3.10).
+# OpenAI integration dependencies:
+openai>=1.0.0
+python-dotenv>=1.0.0
+
+# Optional system tools for PDF/PNG evidence extraction:
+#   pdftotext (poppler-utils) and tesseract-ocr

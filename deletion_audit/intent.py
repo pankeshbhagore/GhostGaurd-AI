@@ -7,6 +7,7 @@ account - are NOT_APPLICABLE: no destructive action is authorised.
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Tuple
 
@@ -60,11 +61,17 @@ def sanitize(text: str) -> str:
     return " ".join(p for p in parts if p and not _INJECTION.search(p))
 
 
-def classify_intent(text: str) -> Tuple[bool, str]:
+def classify_intent(text: str, use_llm: bool = True) -> Tuple[bool, str]:
     """Return (authorises_deletion, reason)."""
     t = sanitize(text)
     strong = any(not _negated(t, m) for m in _DELETE.finditer(t))
     keep = bool(_KEEP.search(t))
+
+    # Evaluate deterministic baseline
+    det_auth = False
+    det_reason = ""
+    is_ambiguous = strong and keep
+
     if strong and keep:
         # a generic "do not delete X" in one sentence does not cancel an unnegated request in another sentence
         hits = list(_KEEP.finditer(t))
@@ -73,13 +80,29 @@ def classify_intent(text: str) -> Tuple[bool, str]:
             keep_sents = {sid(h.start()) for h in hits}
             for m in _DELETE.finditer(t):
                 if not _negated(t, m) and sid(m.start()) not in keep_sents:
-                    return True, "explicit deletion request (separate preservation clause)"
-    if strong and not keep:
-        return True, "explicit deletion request"
-    if strong and keep:
-        # "permanently delete ... " beats an incidental keep-cue only when no preservation is demanded
-        if re.search(r"permanent(?:ly)?\s+(?:delet|erase|remov|account)", t, re.I) and not re.search(
+                    det_auth, det_reason = True, "explicit deletion request (separate preservation clause)"
+                    break
+            else:
+                det_auth, det_reason = False, "deletion words with preservation clauses"
+        elif re.search(r"permanent(?:ly)?\s+(?:delet|erase|remov|account)", t, re.I) and not re.search(
                 r"do not close|don't close|leave (?:the|my)|keep (?:the|my)", t, re.I):
-            return True, "explicit permanent deletion"
-        return False, "deletion words with an explicit preservation instruction"
-    return False, "no deletion authorised (access / correction / export / opt-out)"
+            det_auth, det_reason = True, "explicit permanent deletion"
+        else:
+            det_auth, det_reason = False, "deletion words with an explicit preservation instruction"
+    elif strong and not keep:
+        det_auth, det_reason = True, "explicit deletion request"
+    else:
+        det_auth, det_reason = False, "no deletion authorised (access / correction / export / opt-out)"
+
+    # When ambiguous (mixed signals) and LLM is enabled, verify with OpenAI
+    if is_ambiguous and use_llm and os.getenv("GHOSTGUARD_NO_LLM", "0") != "1":
+        try:
+            from deletion_audit.openai_client import AI_CLIENT
+            if AI_CLIENT.is_available():
+                auth, reason, used = AI_CLIENT.analyze_ambiguous_intent(t, (det_auth, det_reason))
+                if used:
+                    return auth, reason
+        except Exception:
+            pass
+
+    return det_auth, det_reason
