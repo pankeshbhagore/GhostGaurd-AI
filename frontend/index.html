@@ -3,212 +3,240 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GhostGuard AI — Privacy & Deletion Audit Dashboard</title>
+  <title>GhostGuard AI — Live Deletion Audit Dashboard</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
-    :root {
-      --bg: #090d16;
-      --card: #111827;
-      --card-border: #1f2937;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --primary: #3b82f6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-    }
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #080d1a;
+      color: #f3f4f6;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: #0b1120; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0c1322; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #334155; }
+    @keyframes pulse-fast {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .animate-pulse-fast { animation: pulse-fast 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex flex-col gap-6">
 
-  <!-- Header -->
-  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-800">
-    <div>
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            GhostGuard AI <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">v1.0.0</span>
-          </h1>
-          <p class="text-xs text-gray-400">Autonomous Evidence-Graph Deletion Auditor & Compliance Agent</p>
-        </div>
+  <!-- Top System Status Banner -->
+  <div class="flex items-center justify-between px-4 py-2 rounded-lg bg-gray-900/90 border border-gray-800 text-xs text-gray-400">
+    <div class="flex items-center gap-2">
+      <span id="conn-dot" class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse-fast"></span>
+      <span id="conn-text" class="font-medium text-gray-300">Backend: Connecting...</span>
+      <span class="text-gray-600">|</span>
+      <span id="conn-model" class="text-purple-400 font-mono">OpenAI: Checking...</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="last-sync" class="text-gray-500 font-mono text-[11px]">Last sync: --:--:--</span>
+      <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono">Live Data Feed</span>
+    </div>
+  </div>
+
+  <!-- Main Header -->
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-800">
+    <div class="flex items-center gap-3.5">
+      <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          GhostGuard AI <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Live Dashboard</span>
+        </h1>
+        <p class="text-xs text-gray-400">Autonomous Evidence-Graph Deletion Auditor & OpenAI Grounded Reasoner</p>
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Actions Toolbar -->
     <div class="flex items-center gap-2 flex-wrap">
-      <button onclick="runAction('audit')" id="btn-audit" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition">
+      <button onclick="triggerAction('audit')" id="btn-audit" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/25 flex items-center gap-1.5 transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Run Audit Engine
+        <span>Run Audit Engine</span>
       </button>
-      <button onclick="runAction('validate')" id="btn-validate" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 flex items-center gap-1.5 transition">
+      <button onclick="triggerAction('validate')" id="btn-validate" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 flex items-center gap-1.5 transition">
         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Validate Output
+        <span>Validate Output</span>
       </button>
-      <button onclick="runAction('test')" id="btn-test" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 flex items-center gap-1.5 transition">
+      <button onclick="triggerAction('test')" id="btn-test" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 flex items-center gap-1.5 transition">
         <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-        Run Tests
+        <span>Run Tests (44)</span>
       </button>
-      <button onclick="fetchStats(); fetchCases();" class="p-2 text-gray-400 hover:text-white rounded-lg bg-gray-800/80 hover:bg-gray-700 transition" title="Refresh Data">
+      <button onclick="refreshAll()" class="p-2 text-gray-400 hover:text-white rounded-lg bg-gray-800 border border-gray-700 transition" title="Refresh Live Data">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
     </div>
   </header>
 
-  <!-- Metric KPI Cards -->
+  <!-- Real-Time Metric KPI Cards -->
   <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
     <!-- Total Requests -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Requests</span>
+      <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Requests</span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-white" id="stat-total">518</span>
+        <span class="text-2xl font-bold text-white font-mono" id="stat-total">—</span>
         <span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full font-mono">100%</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1">dataset/deletion_requests</span>
     </div>
 
     <!-- Incomplete Violations -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-amber-400 uppercase tracking-wider">Incomplete Data</span>
+      <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Incomplete Data</span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-amber-400" id="stat-incomplete">354</span>
-        <span class="text-xs text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded-full font-mono">68.3%</span>
+        <span class="text-2xl font-bold text-amber-400 font-mono" id="stat-incomplete">—</span>
+        <span class="text-xs text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded-full font-mono" id="pct-incomplete">—%</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1">Ghost data lingering</span>
     </div>
 
     <!-- Complete Deletions -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Verified Complete</span>
+      <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Verified Complete</span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-emerald-400" id="stat-complete">154</span>
-        <span class="text-xs text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded-full font-mono">29.7%</span>
+        <span class="text-2xl font-bold text-emerald-400 font-mono" id="stat-complete">—</span>
+        <span class="text-xs text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded-full font-mono" id="pct-complete">—%</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1">Absence verified</span>
     </div>
 
     <!-- Not Applicable -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Not Applicable</span>
+      <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Not Applicable</span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-gray-300" id="stat-na">10</span>
-        <span class="text-xs text-gray-400 bg-gray-700/50 px-2 py-0.5 rounded-full font-mono">1.9%</span>
+        <span class="text-2xl font-bold text-gray-300 font-mono" id="stat-na">—</span>
+        <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full font-mono" id="pct-na">—%</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1">Preservation/Opt-out</span>
     </div>
 
     <!-- Benchmark Accuracy -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-indigo-400 uppercase tracking-wider">Sample Accuracy</span>
+      <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Sample F1 Score</span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-indigo-300">100%</span>
-        <span class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full font-mono">F1 0.989</span>
+        <span class="text-2xl font-bold text-indigo-300 font-mono" id="stat-f1">—</span>
+        <span class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full font-mono" id="stat-status-acc">Acc 100%</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1">32 public gold samples</span>
     </div>
 
-    <!-- OpenAI Usage Meter -->
+    <!-- Live OpenAI Meter -->
     <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
-      <span class="text-xs font-medium text-purple-400 uppercase tracking-wider flex items-center justify-between">
+      <span class="text-xs font-semibold text-purple-400 uppercase tracking-wider flex items-center justify-between">
         OpenAI Meter
-        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" title="API Active"></span>
+        <span class="h-2 w-2 rounded-full bg-purple-400 animate-pulse" title="METER active"></span>
       </span>
       <div class="flex items-baseline justify-between mt-2">
-        <span class="text-2xl font-bold text-purple-300" id="stat-tokens">4.8k</span>
-        <span class="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full font-mono" id="stat-cost">$0.026</span>
+        <span class="text-2xl font-bold text-purple-300 font-mono" id="stat-tokens">—</span>
+        <span class="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full font-mono" id="stat-cost">$0.00</span>
       </div>
+      <span class="text-[10px] text-gray-500 mt-1" id="stat-calls">0 calls recorded</span>
     </div>
   </section>
 
-  <!-- Terminal Output Drawer (Hidden by default, shown when action runs) -->
-  <div id="terminal-drawer" class="hidden bg-black/90 border border-gray-800 rounded-xl p-4 font-mono text-xs text-gray-300 flex flex-col gap-2">
+  <!-- Live Execution Console Drawer -->
+  <div id="terminal-drawer" class="hidden bg-black/95 border border-gray-800 rounded-xl p-4 font-mono text-xs flex flex-col gap-2 shadow-2xl">
     <div class="flex items-center justify-between border-b border-gray-800 pb-2">
       <div class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
         <span class="font-bold text-white uppercase tracking-wider text-[11px]" id="terminal-title">Execution Console</span>
       </div>
-      <button onclick="document.getElementById('terminal-drawer').classList.add('hidden')" class="text-gray-500 hover:text-white">&times;</button>
+      <button onclick="document.getElementById('terminal-drawer').classList.add('hidden')" class="text-gray-500 hover:text-white text-base leading-none">&times;</button>
     </div>
-    <pre id="terminal-body" class="max-h-48 overflow-y-auto whitespace-pre-wrap text-emerald-400 custom-scroll">Running...</pre>
+    <pre id="terminal-body" class="max-h-56 overflow-y-auto whitespace-pre-wrap text-emerald-400 custom-scroll font-mono text-[11px]">Executing command...</pre>
   </div>
 
-  <!-- Main Content: Case Explorer -->
+  <!-- Interactive Case Explorer & Live Inspector -->
   <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
     
-    <!-- Left Column: Case Table & Filters (7 cols) -->
+    <!-- Left: Case Table & Search (7 Cols) -->
     <div class="lg:col-span-7 bg-gray-900/80 border border-gray-800 rounded-xl flex flex-col overflow-hidden">
       
       <!-- Toolbar -->
-      <div class="p-4 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-900">
-        <!-- Status Tabs -->
+      <div class="p-3.5 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-900">
+        <!-- Status Filter Tabs -->
         <div class="flex items-center gap-1.5 p-1 bg-gray-950 rounded-lg border border-gray-800 text-xs">
-          <button onclick="filterStatus('ALL')" class="status-tab px-3 py-1.5 rounded-md font-medium bg-blue-600 text-white" data-status="ALL">All (<span id="tab-cnt-all">518</span>)</button>
-          <button onclick="filterStatus('INCOMPLETE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="INCOMPLETE">Incomplete</button>
-          <button onclick="filterStatus('COMPLETE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="COMPLETE">Complete</button>
-          <button onclick="filterStatus('NOT_APPLICABLE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="NOT_APPLICABLE">N/A</button>
+          <button onclick="setFilter('ALL')" class="status-tab px-3 py-1.5 rounded-md font-medium bg-blue-600 text-white" data-status="ALL">
+            All (<span id="cnt-all">0</span>)
+          </button>
+          <button onclick="setFilter('INCOMPLETE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="INCOMPLETE">
+            Incomplete (<span id="cnt-incomplete">0</span>)
+          </button>
+          <button onclick="setFilter('COMPLETE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="COMPLETE">
+            Complete (<span id="cnt-complete">0</span>)
+          </button>
+          <button onclick="setFilter('NOT_APPLICABLE')" class="status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white" data-status="NOT_APPLICABLE">
+            N/A (<span id="cnt-na">0</span>)
+          </button>
         </div>
 
-        <!-- Search Input -->
+        <!-- Search Bar -->
         <div class="relative flex-1 sm:max-w-xs">
-          <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Search case, email, resource..." class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+          <input type="text" id="search-input" oninput="onSearch(this.value)" placeholder="Search case, email, resource..." class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
           <svg class="w-4 h-4 text-gray-500 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
       </div>
 
       <!-- Case List Table -->
-      <div class="overflow-x-auto flex-1 custom-scroll max-h-[640px]">
+      <div class="overflow-x-auto flex-1 custom-scroll max-h-[600px]">
         <table class="w-full text-left text-xs border-collapse">
-          <thead class="bg-gray-950 text-gray-400 uppercase text-[11px] tracking-wider sticky top-0 border-b border-gray-800 z-10">
+          <thead class="bg-gray-950 text-gray-400 uppercase text-[11px] tracking-wider sticky top-0 border-b border-gray-800 z-10 font-semibold">
             <tr>
               <th class="py-3 px-4">Case ID</th>
-              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Audited Status</th>
               <th class="py-3 px-4">Steps</th>
               <th class="py-3 px-4">Customer Email</th>
-              <th class="py-3 px-4 text-right">Action</th>
+              <th class="py-3 px-4 text-right">Inspect</th>
             </tr>
           </thead>
           <tbody id="case-table-body" class="divide-y divide-gray-800/60 font-mono text-gray-300">
-            <!-- Populated via JS -->
+            <tr>
+              <td colspan="5" class="text-center py-16 text-gray-500">
+                <div class="flex flex-col items-center gap-2">
+                  <span class="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Loading dynamic case data from backend...</span>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
       <div class="p-3 border-t border-gray-800 text-xs text-gray-500 flex items-center justify-between bg-gray-950">
-        <span id="case-count-label">Showing 518 cases</span>
-        <span>Output File: <code class="text-blue-400">output.csv</code></span>
+        <span id="case-count-label">Loaded 0 cases</span>
+        <span>Source: <code class="text-blue-400">output.csv</code> (Real-time)</span>
       </div>
     </div>
 
-    <!-- Right Column: Case Inspector & AI Investigation Narrative (5 cols) -->
-    <div class="lg:col-span-5 bg-gray-900/80 border border-gray-800 rounded-xl flex flex-col overflow-hidden" id="inspector-card">
+    <!-- Right: Case Detail Inspector & Real-time OpenAI Reasoner (5 Cols) -->
+    <div class="lg:col-span-5 bg-gray-900/80 border border-gray-800 rounded-xl flex flex-col overflow-hidden">
       
       <!-- Inspector Header -->
       <div class="p-4 border-b border-gray-800 bg-gray-900 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Case Inspector</span>
+          <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Live Case Inspector</span>
           <span id="insp-case-id" class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Select a case</span>
         </div>
         <span id="insp-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold"></span>
       </div>
 
       <!-- Inspector Body -->
-      <div class="p-4 overflow-y-auto custom-scroll flex-1 flex flex-col gap-4 max-h-[640px]" id="inspector-body">
+      <div class="p-4 overflow-y-auto custom-scroll flex-1 flex flex-col gap-4 max-h-[600px]" id="inspector-body">
         
         <!-- Placeholder when no case is selected -->
-        <div id="insp-empty" class="text-center py-16 text-gray-500">
+        <div id="insp-empty" class="text-center py-20 text-gray-500">
           <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <p class="font-medium">No case selected</p>
-          <p class="text-xs text-gray-600 mt-1">Click "Inspect" on any case in the table to explore its evidence findings, steps, and AI investigation narrative.</p>
+          <p class="font-medium text-gray-400">Select any case to inspect</p>
+          <p class="text-xs text-gray-600 mt-1">Live evidence, sequential steps, and real-time OpenAI investigation narratives will display here.</p>
         </div>
 
-        <!-- Case Metadata (Hidden initially) -->
+        <!-- Case Details (Shown when selected) -->
         <div id="insp-content" class="hidden flex flex-col gap-4">
           
           <!-- Customer Request Card -->
@@ -221,29 +249,32 @@
             </div>
           </div>
 
-          <!-- OpenAI Reasoning Narrative -->
+          <!-- Real-Time OpenAI Reasoning Card -->
           <div class="bg-gradient-to-br from-purple-950/30 to-blue-950/20 border border-purple-800/40 rounded-lg p-3.5 flex flex-col gap-2.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                OpenAI Investigation Narrative (gpt-4o)
+                OpenAI Investigation Narrative (<span id="insp-model-label">gpt-4o</span>)
               </span>
-              <button onclick="requestAiExplanation()" id="btn-re-explain" class="text-[11px] text-purple-400 hover:text-purple-300 underline font-medium">Re-generate</button>
+              <button onclick="requestAiExplanation()" id="btn-re-explain" class="px-2 py-0.5 rounded bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 text-[11px] font-medium transition flex items-center gap-1">
+                <span>Generate Narrative</span>
+              </button>
             </div>
             
-            <div id="ai-narrative-container" class="text-xs text-gray-300 flex flex-col gap-2">
+            <div id="ai-narrative-container" class="text-xs text-gray-300 flex flex-col gap-2.5">
               <div>
-                <span class="text-[11px] font-semibold text-purple-300/80 block">Executive Summary:</span>
-                <p id="ai-exec-summary" class="text-gray-300 mt-0.5 leading-relaxed"></p>
+                <span class="text-[11px] font-semibold text-purple-300/90 block">Executive Summary:</span>
+                <p id="ai-exec-summary" class="text-gray-300 mt-0.5 leading-relaxed">Click "Generate Narrative" to analyze this case with OpenAI gpt-4o.</p>
               </div>
-              <div id="ai-root-cause-block">
-                <span class="text-[11px] font-semibold text-amber-300/80 block">Root Cause Analysis:</span>
+              <div id="ai-root-cause-block" class="hidden">
+                <span class="text-[11px] font-semibold text-amber-300/90 block">Root Cause Analysis:</span>
                 <p id="ai-root-cause" class="text-gray-300 mt-0.5 leading-relaxed"></p>
               </div>
-              <div id="ai-remediation-block">
-                <span class="text-[11px] font-semibold text-blue-300/80 block">Remediation Guidance:</span>
+              <div id="ai-remediation-block" class="hidden">
+                <span class="text-[11px] font-semibold text-blue-300/90 block">Remediation Guidance:</span>
                 <p id="ai-remediation" class="text-gray-300 mt-0.5 leading-relaxed"></p>
               </div>
+              <div id="ai-meta-source" class="text-[10px] text-gray-500 italic pt-1 border-t border-purple-900/30"></div>
             </div>
           </div>
 
@@ -267,57 +298,93 @@
 
   <script>
     let allCases = [];
-    let currentStatus = 'ALL';
+    let currentFilter = 'ALL';
     let currentSearch = '';
     let selectedCase = null;
+    let pollInterval = null;
 
-    // Fetch Stats
-    async function fetchStats() {
+    // Real-Time Stats Loader
+    async function loadStats() {
       try {
         const res = await fetch('/api/stats');
+        if (!res.ok) throw new Error('API offline');
         const data = await res.json();
+
+        // Update Connection Status
+        document.getElementById('conn-dot').className = 'h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse-fast';
+        document.getElementById('conn-text').textContent = 'Backend: Online (localhost:8000)';
+        document.getElementById('conn-model').textContent = `OpenAI: ${data.openai_model || 'gpt-4o'}`;
+        document.getElementById('last-sync').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
+
+        // KPI Counts
         document.getElementById('stat-total').textContent = data.total_cases;
         document.getElementById('stat-incomplete').textContent = data.status_counts.INCOMPLETE || 0;
         document.getElementById('stat-complete').textContent = data.status_counts.COMPLETE || 0;
         document.getElementById('stat-na').textContent = data.status_counts.NOT_APPLICABLE || 0;
-        document.getElementById('tab-cnt-all').textContent = data.total_cases;
 
-        if (data.usage && data.usage.model_totals) {
-          const t = data.usage.model_totals;
-          const k = ((t.input_tokens + t.output_tokens) / 1000).toFixed(1) + 'k';
-          document.getElementById('stat-tokens').textContent = k;
-          document.getElementById('stat-cost').textContent = '$' + (t.cost_usd || 0).toFixed(3);
+        // Percentages
+        if (data.percentages) {
+          document.getElementById('pct-incomplete').textContent = data.percentages.INCOMPLETE + '%';
+          document.getElementById('pct-complete').textContent = data.percentages.COMPLETE + '%';
+          document.getElementById('pct-na').textContent = data.percentages.NOT_APPLICABLE + '%';
+        }
+
+        // Tab Badges
+        document.getElementById('cnt-all').textContent = data.total_cases;
+        document.getElementById('cnt-incomplete').textContent = data.status_counts.INCOMPLETE || 0;
+        document.getElementById('cnt-complete').textContent = data.status_counts.COMPLETE || 0;
+        document.getElementById('cnt-na').textContent = data.status_counts.NOT_APPLICABLE || 0;
+
+        // Benchmark Accuracy
+        if (data.metrics && data.metrics.step_f1) {
+          document.getElementById('stat-f1').textContent = data.metrics.step_f1.toFixed(3);
+          document.getElementById('stat-status-acc').textContent = `Acc ${(data.metrics.status_acc * 100).toFixed(0)}%`;
+        }
+
+        // Live Meter
+        if (data.usage && data.usage.live_meter) {
+          const m = data.usage.live_meter;
+          const kTokens = ((m.input_tokens + m.output_tokens) / 1000).toFixed(1) + 'k';
+          document.getElementById('stat-tokens').textContent = kTokens;
+          document.getElementById('stat-cost').textContent = '$' + (m.cost_usd || 0).toFixed(3);
+          document.getElementById('stat-calls').textContent = `${m.calls} model calls recorded`;
         }
       } catch (e) {
-        console.error("Failed fetching stats", e);
+        document.getElementById('conn-dot').className = 'h-2.5 w-2.5 rounded-full bg-red-500';
+        document.getElementById('conn-text').textContent = 'Backend: Disconnected (reconnecting...)';
       }
     }
 
-    // Fetch Cases
-    async function fetchCases() {
+    // Real-Time Cases Loader
+    async function loadCases() {
       try {
-        let url = `/api/cases?status=${currentStatus}`;
+        let url = `/api/cases?status=${currentFilter}`;
         if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
         const res = await fetch(url);
         const data = await res.json();
         allCases = data.cases || [];
-        renderCaseTable(allCases);
+        renderTable(allCases);
       } catch (e) {
-        console.error("Failed fetching cases", e);
+        console.error("Failed fetching cases:", e);
       }
     }
 
-    // Render Case Table
-    function renderCaseTable(cases) {
+    // Render Table
+    function renderTable(cases) {
       const tbody = document.getElementById('case-table-body');
       tbody.innerHTML = '';
-      document.getElementById('case-count-label').textContent = `Showing ${cases.length} cases`;
+      document.getElementById('case-count-label').textContent = `Loaded ${cases.length} cases from output.csv`;
+
+      if (cases.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-gray-500">No cases match the current filter or search query.</td></tr>`;
+        return;
+      }
 
       cases.forEach(c => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-800/50 cursor-pointer transition';
+        tr.className = 'hover:bg-gray-800/60 cursor-pointer transition';
         if (selectedCase && selectedCase.case_id === c.case_id) {
-          tr.className += ' bg-blue-950/20 border-l-2 border-blue-500';
+          tr.className += ' bg-blue-950/30 border-l-2 border-blue-500';
         }
 
         let badgeClass = 'bg-gray-800 text-gray-300';
@@ -331,7 +398,7 @@
           <td class="py-2.5 px-4 font-mono text-gray-400">${c.step_count} step(s)</td>
           <td class="py-2.5 px-4 text-gray-400 truncate max-w-[180px]">${c.email}</td>
           <td class="py-2.5 px-4 text-right">
-            <button onclick="inspectCase('${c.case_id}')" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-gray-800 hover:bg-blue-600 hover:text-white text-gray-300 transition">
+            <button onclick="inspect('${c.case_id}')" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-gray-800 hover:bg-blue-600 hover:text-white text-gray-300 transition">
               Inspect
             </button>
           </td>
@@ -340,8 +407,8 @@
       });
     }
 
-    // Inspect Specific Case
-    async function inspectCase(caseId) {
+    // Inspect Case
+    function inspect(caseId) {
       selectedCase = allCases.find(c => c.case_id === caseId);
       if (!selectedCase) return;
 
@@ -361,7 +428,13 @@
       document.getElementById('insp-audit-at').textContent = selectedCase.audit_at;
       document.getElementById('insp-step-count').textContent = `${selectedCase.steps.length} step(s)`;
 
-      // Render Steps
+      // Reset AI narrative box
+      document.getElementById('ai-exec-summary').textContent = 'Click "Generate Narrative" to produce an OpenAI investigation narrative grounded in verified findings.';
+      document.getElementById('ai-root-cause-block').classList.add('hidden');
+      document.getElementById('ai-remediation-block').classList.add('hidden');
+      document.getElementById('ai-meta-source').textContent = '';
+
+      // Render Step Pipeline
       const stepsContainer = document.getElementById('insp-steps-list');
       stepsContainer.innerHTML = '';
       if (selectedCase.steps.length === 0) {
@@ -392,41 +465,47 @@
         });
       }
 
-      // Automatically request AI Explanation
-      await requestAiExplanation();
+      // Re-render table selection highlight
+      renderTable(allCases);
     }
 
-    // Request AI Narrative
+    // Request AI Narrative Live
     async function requestAiExplanation() {
       if (!selectedCase) return;
-      document.getElementById('ai-exec-summary').textContent = 'Analyzing evidence and generating narrative with gpt-4o...';
-      document.getElementById('ai-root-cause').textContent = '...';
-      document.getElementById('ai-remediation').textContent = '...';
+      const btn = document.getElementById('btn-re-explain');
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Analyzing...`;
+      btn.disabled = true;
+
+      document.getElementById('ai-exec-summary').textContent = 'Analyzing evidence citations and generating grounded explanation via OpenAI gpt-4o...';
 
       try {
         const res = await fetch(`/api/explain/${selectedCase.case_id}`, { method: 'POST' });
         const nar = await res.json();
+
         document.getElementById('ai-exec-summary').textContent = nar.executive_summary || 'Analysis complete.';
         if (nar.root_cause_analysis) {
-          document.getElementById('ai-root-cause-block').style.display = 'block';
+          document.getElementById('ai-root-cause-block').classList.remove('hidden');
           document.getElementById('ai-root-cause').textContent = nar.root_cause_analysis;
-        } else {
-          document.getElementById('ai-root-cause-block').style.display = 'none';
         }
         if (nar.remediation_narrative) {
-          document.getElementById('ai-remediation-block').style.display = 'block';
+          document.getElementById('ai-remediation-block').classList.remove('hidden');
           document.getElementById('ai-remediation').textContent = nar.remediation_narrative;
-        } else {
-          document.getElementById('ai-remediation-block').style.display = 'none';
         }
+        document.getElementById('ai-meta-source').textContent = `Source: ${nar.source || 'OpenAI (gpt-4o)'} • Grounded in output.csv`;
+
+        // Refresh stats to capture new token counts
+        loadStats();
       } catch (e) {
-        document.getElementById('ai-exec-summary').textContent = 'Deterministic fallback explanation generated.';
+        document.getElementById('ai-exec-summary').textContent = `Failed generating narrative: ${e}`;
+      } finally {
+        btn.innerHTML = `<span>Re-generate</span>`;
+        btn.disabled = false;
       }
     }
 
-    // Filter by Status Tab
-    function filterStatus(st) {
-      currentStatus = st;
+    // Set Status Filter
+    function setFilter(st) {
+      currentFilter = st;
       document.querySelectorAll('.status-tab').forEach(b => {
         if (b.dataset.status === st) {
           b.className = 'status-tab px-3 py-1.5 rounded-md font-medium bg-blue-600 text-white';
@@ -434,46 +513,54 @@
           b.className = 'status-tab px-3 py-1.5 rounded-md font-medium text-gray-400 hover:text-white';
         }
       });
-      fetchCases();
+      loadCases();
     }
 
-    // Handle Search
-    let searchTimeout = null;
-    function handleSearch(val) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
+    // Search Handler
+    let searchDebounce = null;
+    function onSearch(val) {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
         currentSearch = val;
-        fetchCases();
+        loadCases();
       }, 250);
     }
 
-    // Run Terminal Actions
-    async function runAction(action) {
+    // Trigger Execution Actions
+    async function triggerAction(action) {
       const drawer = document.getElementById('terminal-drawer');
       const body = document.getElementById('terminal-body');
       const title = document.getElementById('terminal-title');
       drawer.classList.remove('hidden');
-      body.textContent = `[Executing ${action}...]`;
+      body.textContent = `[Starting ${action} on local system...]`;
       title.textContent = `Running ${action}...`;
 
       try {
         const res = await fetch(`/api/action/${action}`, { method: 'POST' });
         const out = await res.json();
         body.textContent = out.stdout + (out.stderr ? '\n[STDERR]\n' + out.stderr : '');
-        title.textContent = `Completed (Exit ${out.returncode})`;
-        fetchStats();
-        fetchCases();
+        title.textContent = `Finished ${action} (Exit code: ${out.returncode})`;
+        loadStats();
+        loadCases();
       } catch (e) {
-        body.textContent = `Failed running action: ${e}`;
+        body.textContent = `Execution error: ${e}`;
+        title.textContent = `Failed: ${action}`;
       }
     }
 
-    // Initial load
-    fetchStats();
-    fetchCases().then(() => {
-      // Auto inspect first case
-      if (allCases.length > 0) inspectCase(allCases[0].case_id);
+    function refreshAll() {
+      loadStats();
+      loadCases();
+    }
+
+    // Initialize
+    loadStats();
+    loadCases().then(() => {
+      if (allCases.length > 0) inspect(allCases[0].case_id);
     });
+
+    // Real-Time Polling every 4 seconds
+    pollInterval = setInterval(loadStats, 4000);
   </script>
 </body>
 </html>

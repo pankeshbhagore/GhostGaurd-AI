@@ -2,6 +2,7 @@
 
 Serves an interactive audit dashboard and provides local REST APIs to inspect cases,
 view evidence citations, generate live OpenAI explanations, validate output, and run tests.
+All data is 100% dynamically loaded from the engine, dataset, and output artifacts.
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -22,12 +24,19 @@ from deletion_audit.casemodel import load_requests
 from deletion_audit.openai_client import AI_CLIENT
 from deletion_audit.usage import METER
 
+START_TIME = time.time()
+_CACHED_REQ_MAP = None
+_CACHED_OUTPUT_MTIME = 0
+_CACHED_CASES = []
 
-def load_dataset_and_output():
-    out_path = os.path.join(ROOT, "output.csv")
+
+def get_requests_map():
+    global _CACHED_REQ_MAP
+    if _CACHED_REQ_MAP is not None:
+        return _CACHED_REQ_MAP
+
     ds_path = os.path.join(ROOT, "dataset", "deletion_requests.csv")
     sample_path = os.path.join(ROOT, "dataset", "sample_deletion_requests.csv")
-
     req_map = {}
     if os.path.exists(ds_path):
         for r in load_requests(ds_path):
@@ -36,29 +45,45 @@ def load_dataset_and_output():
         for r in load_requests(sample_path):
             if r.case_id not in req_map:
                 req_map[r.case_id] = r
+    _CACHED_REQ_MAP = req_map
+    return req_map
 
+
+def load_dataset_and_output():
+    global _CACHED_OUTPUT_MTIME, _CACHED_CASES
+    out_path = os.path.join(ROOT, "output.csv")
+    if not os.path.exists(out_path):
+        return []
+
+    current_mtime = os.path.getmtime(out_path)
+    if _CACHED_CASES and current_mtime == _CACHED_OUTPUT_MTIME:
+        return _CACHED_CASES
+
+    req_map = get_requests_map()
     cases = []
-    if os.path.exists(out_path):
-        with open(out_path, newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
-                cid = row["case_id"]
-                req = req_map.get(cid)
-                steps = []
-                try:
-                    steps = json.loads(row.get("steps_json", "[]"))
-                except Exception:
-                    pass
-                cases.append({
-                    "case_id": cid,
-                    "deletion_status": row.get("deletion_status", "UNKNOWN"),
-                    "steps": steps,
-                    "step_count": len(steps),
-                    "email": req.email if req else "N/A",
-                    "requested_at": req.requested_at.isoformat() if req and hasattr(req.requested_at, "isoformat") else str(getattr(req, "requested_at", "N/A")),
-                    "reported_status": req.reported_status if req else "N/A",
-                    "audit_at": req.audit_at.isoformat() if req and hasattr(req.audit_at, "isoformat") else str(getattr(req, "audit_at", "N/A")),
-                    "request_text": req.text if req else ""
-                })
+    with open(out_path, newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            cid = row["case_id"]
+            req = req_map.get(cid)
+            steps = []
+            try:
+                steps = json.loads(row.get("steps_json", "[]"))
+            except Exception:
+                pass
+            cases.append({
+                "case_id": cid,
+                "deletion_status": row.get("deletion_status", "UNKNOWN"),
+                "steps": steps,
+                "step_count": len(steps),
+                "email": req.email if req else "N/A",
+                "requested_at": req.requested_at.isoformat() if req and hasattr(req.requested_at, "isoformat") else str(getattr(req, "requested_at", "N/A")),
+                "reported_status": req.reported_status if req else "N/A",
+                "audit_at": req.audit_at.isoformat() if req and hasattr(req.audit_at, "isoformat") else str(getattr(req, "audit_at", "N/A")),
+                "request_text": req.text if req else ""
+            })
+
+    _CACHED_OUTPUT_MTIME = current_mtime
+    _CACHED_CASES = cases
     return cases
 
 
@@ -70,7 +95,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
         self.wfile.write(body)
 
@@ -78,7 +103,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
     def do_GET(self):
@@ -93,10 +118,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(content)
             else:
                 self.send_error(404, "index.html not found")
+            return
+
+        if path == "/api/health":
+            self._send_json({
+                "status": "online",
+                "uptime_seconds": round(time.time() - START_TIME, 1),
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "port": 8000,
+                "openai_active": AI_CLIENT.is_available()
+            })
             return
 
         if path == "/api/stats":
@@ -106,6 +142,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 st = c["deletion_status"]
                 status_counts[st] = status_counts.get(st, 0) + 1
 
+            total = len(cases)
+            percentages = {
+                "INCOMPLETE": round(status_counts["INCOMPLETE"] / max(total, 1) * 100, 1),
+                "COMPLETE": round(status_counts["COMPLETE"] / max(total, 1) * 100, 1),
+                "NOT_APPLICABLE": round(status_counts["NOT_APPLICABLE"] / max(total, 1) * 100, 1),
+            }
+
             usage_path = os.path.join(ROOT, "evaluation", "usage_run.json")
             usage_data = {}
             if os.path.exists(usage_path):
@@ -113,6 +156,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     usage_data = json.load(open(usage_path, encoding="utf-8"))
                 except Exception:
                     pass
+
+            # Inject live meter totals into usage
+            live_meter = METER.totals()
+            usage_data["live_meter"] = live_meter
+            usage_data["live_models"] = dict(METER.models)
 
             metrics_path = os.path.join(ROOT, "evaluation", "sample_metrics.json")
             metrics_data = {}
@@ -123,18 +171,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     pass
 
             self._send_json({
-                "total_cases": len(cases),
+                "total_cases": total,
                 "status_counts": status_counts,
+                "percentages": percentages,
                 "usage": usage_data,
                 "metrics": metrics_data,
                 "openai_enabled": AI_CLIENT.is_available(),
-                "openai_model": AI_CLIENT.model
+                "openai_model": AI_CLIENT.model,
+                "server_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             })
             return
 
         if path == "/api/cases":
             cases = load_dataset_and_output()
-            # Filter
             st_filter = qs.get("status", [None])[0]
             search = qs.get("search", [""])[0].lower()
 
@@ -159,7 +208,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if target:
                 self._send_json(target)
             else:
-                self._send_json({"error": "Case not found"}, status=404)
+                self._send_json({"error": f"Case '{case_id}' not found"}, status=404)
             return
 
         self.send_error(404, "Not Found")
@@ -187,6 +236,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         if path == "/api/action/audit":
             p = subprocess.run([sys.executable, os.path.join(ROOT, "main.py"), "--evaluate"], capture_output=True, text=True, cwd=ROOT)
+            global _CACHED_OUTPUT_MTIME
+            _CACHED_OUTPUT_MTIME = 0  # invalidate cache so fresh output is read
             self._send_json({"returncode": p.returncode, "stdout": p.stdout, "stderr": p.stderr})
             return
 
