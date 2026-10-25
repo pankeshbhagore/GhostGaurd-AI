@@ -1,6 +1,6 @@
 {
   "requests": 518,
-  "wall_seconds": 6.2,
+  "wall_seconds": 4.78,
   "status_counts": {
     "INCOMPLETE": 354,
     "COMPLETE": 154,
@@ -23,7 +23,7 @@
   },
   "local_extractor_calls": 15,
   "local_extractor_status": {
-    "ok": 4,
-    "no-extractor": 11
+    "no-extractor": 11,
+    "ok": 4
   }
 }

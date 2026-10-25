@@ -144,67 +144,155 @@ OPENAI_MODEL=gpt-4o
 | **Investigation & Remediation Narratives** | OpenAI (`gpt-4o`) | Optional | Generates root-cause analyses, executive summaries, and remediation narratives strictly grounded in verified steps (never hallucinates citations). Fallbacks to structured templates offline. |
 | **Token & Cost Accounting** | `deletion_audit.usage.METER` | Automatic | Records real model name, calls, input/output tokens, and estimated USD cost to `evaluation/usage_run.json` and `evaluation/usage_report.md`. If no API calls occur, reports zero honestly. |
 
-## 11. Running Locally on Windows
+## 11. Complete Project Running Guide
 
-### 1. Run the Full Audit Pipeline
-Audits `dataset/deletion_requests.csv` and generates `output.csv` (518 rows):
+### 11.1 Quick Start (3-Step Run)
+To get the entire project up and running immediately on Windows, macOS, or Linux:
+```bash
+# 1. Activate virtual environment
+# Windows: .venv\Scripts\Activate.ps1   (or .venv\Scripts\activate.bat)
+# Linux/macOS: source .venv/bin/activate
+
+# 2. Run the audit pipeline
+python main.py --evaluate
+
+# 3. Start the live Frontend Web Dashboard
+python frontend/app.py 8000
+```
+Open **[http://localhost:8000](http://localhost:8000)** in your browser to interact with the dashboard.
+
+---
+
+### 11.2 Running the Interactive Web Frontend Dashboard
+The project includes a real-time web dashboard connected directly to the backend engine with zero static or mock data.
+
+```bash
+python frontend/app.py 8000
+```
+**Access URL:** `http://localhost:8000`
+
+**Dashboard Features:**
+- **Real-Time KPI Cards:** Displays total requests (518), incomplete ghost data cases (354), verified complete cases (154), not applicable (10), and live OpenAI token & USD cost meters.
+- **Interactive Case Explorer:** Instant search by Case ID, email, or resource ID, with status filter tabs (`All`, `Incomplete`, `Complete`, `N/A`).
+- **Live Sequential Step Inspector:** Inspect any case to view customer request text, timestamps, and full step-by-step audit plans (Findings → Remediation → Verification).
+- **Grounded OpenAI Reasoner:** Click **"Generate Narrative"** on any case to invoke `gpt-4o` live for an executive summary, root-cause analysis, and remediation guidance grounded in verified findings.
+- **One-Click Action Console:** Trigger the Audit Engine, Output Validator, or Test Suite directly from the browser with streaming terminal execution logs.
+
+*(To run on a different port, pass the port as an argument: `python frontend/app.py 8080`).*
+
+---
+
+### 11.3 Running the Core Audit Pipeline (CLI)
+
+#### Standard Audit Execution
+Audits all 518 cases from `dataset/deletion_requests.csv` and generates predictions to `output.csv`:
 ```bash
 python main.py
 ```
 
-### 2. Run Audit with Public Sample Benchmark Scoring
-Evaluates predictions against public sample gold labels:
+#### Audit with Official Public Benchmark Scoring
+Audits requests and automatically scores the 32 public reference cases against `dataset/sample_output.csv`:
 ```bash
 python main.py --evaluate
 ```
 
-### 3. Case Drill-Down & Investigation Narrative (OpenAI)
-Generates an AI-powered root-cause investigation and remediation explanation for a specific case:
-```bash
-python main.py --case case_100
-```
-
-### 4. Generate Comprehensive Audit Narratives
-Generates `evaluation/audit_narratives.md` explaining key `INCOMPLETE`, `COMPLETE`, and `NOT_APPLICABLE` cases:
-```bash
-python main.py --summarize
-```
-
-### 5. Force 100% Offline Deterministic Mode
-Bypasses all API calls completely:
+#### Force 100% Offline Deterministic Mode
+Bypasses all external model API calls completely:
 ```bash
 python main.py --no-llm
 ```
 
-### 6. Validate Output Integrity
-Performs independent two-layer (structural and semantic) validation:
+#### Custom Dataset or Output Paths
+```bash
+python main.py --dataset path/to/dataset --requests custom_requests.csv --output custom_output.csv
+```
+
+---
+
+### 11.4 Running with OpenAI Investigation Narratives
+
+#### Single Case Drill-Down & Root Cause Analysis
+Generates an AI-powered compliance investigation for a specific case:
+```bash
+python main.py --case case_100
+```
+*Output includes: Audited Status, Executive Summary, Root Cause Analysis, Remediation Plan, and Verification Protocol.*
+
+#### Batch Investigation Narratives
+Generates detailed investigation narratives across representative `INCOMPLETE`, `COMPLETE`, and `NOT_APPLICABLE` cases and saves them to `evaluation/audit_narratives.md`:
+```bash
+python main.py --summarize
+```
+
+---
+
+### 11.5 Running Output Validation
+Validates `output.csv` using the independent two-layer validator (imports nothing from the core engine):
 ```bash
 python validate.py
 ```
+**Checks Performed:**
+- **Layer 1 (Structural Contract):** Correct columns, row count (518), valid JSON, required keys, allowed operations, phases, and status rules.
+- **Layer 2 (Semantic Evidence):** Verifies that every cited evidence file exists, was captured before `audit_at`, mentions the target resource, matches `deletion_rules.csv`, and has consistent findings/remediations.
 
-### 7. Run Diagnostics
-Inspects evidence coverage and linkage confidence:
-```bash
-python diagnostics.py
-```
+---
 
-### 8. Run the Complete Test Suite (44 Tests)
-Runs unit, metamorphic, synthetic, validator mutation, intent, and OpenAI integration tests:
+### 11.6 Running the Test Suite (44 Automated Tests)
+Executes unit tests, synthetic scenarios, metamorphic transformations, validator mutations, intent classification, and OpenAI integration tests:
 ```bash
 python -W ignore -m unittest discover -s tests -v
 ```
 
-### 9. Run Custom Cases & Holdout Linkage
-```bash
-python evaluation/custom_cases.py
-python evaluation/linkage_holdout.py
-```
+**Test Coverage Breakdown:**
+- `test_intent.py`: Multilingual intent classifier and adversarial prompt-injection resistance.
+- `test_openai.py`: OpenAI SDK integration, token metering, cost calculation, and deterministic fallbacks.
+- `test_regression.py`: Determinism, output format, row counts, and sample benchmark thresholds.
+- `test_synthetic.py`: 10 realistic synthetic scenarios, 5 metamorphic property tests, and 17 validator mutation checks.
 
-### 10. All-in-One Verification & Reproducibility Runner
-Executes tests -> sample evaluation -> full run (twice) -> SHA256 byte comparison -> validation -> diagnostics -> holdout test:
+---
+
+### 11.7 Running End-to-End Reproducibility (`run_all.py`)
+Executes the full pipeline in one command:
 ```bash
 python run_all.py
 ```
+**Steps executed automatically:**
+1. Unit and integration tests (`1_tests`)
+2. Team custom invariant checks (`2_custom_cases`)
+3. Cold sample evaluation and full run (`3_sample_eval_and_full_run`)
+4. Second full run (`4_second_run`)
+5. Byte-for-byte SHA256 comparison between Run 1 and Run 2 (`5_reproducibility.json`)
+6. Output validation (`6_validate`)
+7. Evidence diagnostics (`7_diagnostics`)
+8. Held-out key-less link accuracy check (`8_linkage_holdout`)
+
+---
+
+### 11.8 Running Diagnostics & Provenance Reports
+Generates evidence coverage and linkage confidence reports:
+```bash
+python diagnostics.py
+```
+- Outputs `evaluation/evidence_diagnostics.md` (manifest file parsing and observation coverage).
+- Outputs `evaluation/linkage_confidence.csv` (provenance of every linked resource: verified by keys vs. inferred by timing).
+
+---
+
+### 11.9 Command Summary & Cheatsheet
+
+| Task | Command | Primary Output / Result |
+|---|---|---|
+| **Web Dashboard** | `python frontend/app.py 8000` | Web UI at `http://localhost:8000` |
+| **Run Pipeline** | `python main.py` | `output.csv` (518 rows) |
+| **Evaluate Samples** | `python main.py --evaluate` | Benchmark metrics (Status Acc, Step F1) |
+| **Case Drill-Down** | `python main.py --case case_100` | OpenAI grounded investigation narrative |
+| **Generate Narratives**| `python main.py --summarize` | `evaluation/audit_narratives.md` |
+| **Offline Mode** | `python main.py --no-llm` | 100% deterministic local execution |
+| **Validate Output** | `python validate.py` | Structural & Semantic validation report |
+| **Run Test Suite** | `python -W ignore -m unittest discover -s tests -v`| 44 automated tests passing |
+| **Custom Checks** | `python evaluation/custom_cases.py` | 4 invariant checks |
+| **Holdout Test** | `python evaluation/linkage_holdout.py` | Key-less link recovery benchmark |
+| **All-in-One Runner**| `python run_all.py` | Full test + 2-run SHA256 reproducibility |
 
 ## 16. Output schema and examples
 `output.csv`: `case_id,deletion_status,steps_json`. Each step: `step_no, phase, system_id, resource_id, operation, state, evidence_id`.
